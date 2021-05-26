@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: kylorhall/compare-package-json-version-with-latest@v1.0.0
+        uses: kylorhall/compare-package-json-version-with-latest@v1.0.1
         with:
           repository: ${{ github.repository }}
 
@@ -28,7 +28,7 @@ jobs:
           echo matches?: ${{ steps.compare.outputs.matches }}
           echo newer?: ${{ steps.compare.outputs.newer }}
           echo diff: ${{ steps.compare.outputs.diff }}
-          
+
       - name: Fail if not newer
         if: steps.compare.outputs.newer != 'true'
         run: |
