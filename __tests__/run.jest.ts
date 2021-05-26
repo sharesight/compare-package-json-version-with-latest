@@ -52,7 +52,6 @@ export const overrideInputs = (inputs) => {
 
 describe("run", () => {
   beforeEach(() => {
-    delete process.env["GITHUB_WORKSPACE"]; // delete this so our inputs are always used
     jest.clearAllMocks();
     jest.resetAllMocks();
 

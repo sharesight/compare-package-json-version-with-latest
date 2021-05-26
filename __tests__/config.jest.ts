@@ -6,6 +6,8 @@ import type { Config } from "../src/config";
 const originalGitHubWorkspace = process.env["GITHUB_WORKSPACE"];
 const originalGitHubRepository = process.env["GITHUB_REPOSITORY"];
 
+process.env["GITHUB_REPOSITORY"] = "some/repo";
+
 export const baseInputs: Config = {
   repository: "kylorhall/package",
   directory: "../",
