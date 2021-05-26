@@ -1,4 +1,4 @@
-import { setOutput, setFailed } from "@actions/core";
+import { setFailed } from "@actions/core";
 
 import { setLatestRemoteVersion, setPackageJsonVersion } from "./version";
 import { compareVersions } from "./compare";

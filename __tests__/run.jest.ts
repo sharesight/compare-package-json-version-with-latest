@@ -2,22 +2,39 @@ import { mocked } from "ts-jest/utils";
 import fs from "fs";
 import path from "path";
 import * as core from "@actions/core";
-import latestVersion from "latest-version";
+import { graphql } from "@octokit/graphql";
 
 import type { Config } from "../src/config";
 
 const LATEST_VERSION = "1.2.3";
 const CURRENT_VERSION = "1.2.3-workspace.42";
 
-jest.mock("latest-version");
-const latestVersionMocked = mocked(latestVersion);
-
 jest.mock("fs");
 const readFileSyncMocked = mocked(fs.readFileSync);
 
+jest.mock("@octokit/graphql");
+const graphqlMocked = mocked(graphql);
+
+export const mockLatestVersionResponse = (version) => {
+  graphqlMocked.mockImplementation(async () => ({
+    repository: {
+      packages: {
+        nodes: [
+          {
+            latestVersion: {
+              id: "…",
+              version,
+            },
+          },
+        ],
+      },
+    },
+  }));
+};
+
 export const baseInputs: Config = {
   directory: path.resolve(__dirname, "./workspace"),
-  package: "@kylorhall/package",
+  repository: "kylorhall/package",
 };
 
 let setFailedSpy;
@@ -42,7 +59,7 @@ describe("run", () => {
       JSON.stringify({ version: CURRENT_VERSION })
     );
 
-    latestVersionMocked.mockImplementation(async () => LATEST_VERSION);
+    mockLatestVersionResponse(LATEST_VERSION);
 
     jest
       .spyOn(core, "getInput")
@@ -79,7 +96,7 @@ describe("run", () => {
   });
 
   test("'newer' scenario: sets all outputs as expected", async () => {
-    latestVersionMocked.mockImplementation(async () => "1.2.2");
+    mockLatestVersionResponse("1.2.2");
 
     // NOTE: This runs on load, this is how you do that…
     let promise;
@@ -106,7 +123,7 @@ describe("run", () => {
     "'matches' scenario: sets all outputs as expected",
     async (version) => {
       readFileSyncMocked.mockReturnValue(JSON.stringify({ version }));
-      latestVersionMocked.mockImplementation(async () => version);
+      mockLatestVersionResponse(version);
 
       // NOTE: This runs on load, this is how you do that…
       let promise;
@@ -155,7 +172,7 @@ describe("run", () => {
   test.each(["", undefined])(
     "failing scenario: missing/invalid remote latest package version=%p",
     async (version) => {
-      latestVersionMocked.mockImplementation(async () => version);
+      mockLatestVersionResponse(version);
 
       // NOTE: This runs on load, this is how you do that…
       let promise;
@@ -167,18 +184,18 @@ describe("run", () => {
 
       expect(setFailedSpy).toHaveBeenCalledTimes(1);
       expect(setFailedSpy).toHaveBeenCalledWith(
-        `⚠️ Found no latest remote version for '@kylorhall/package'.`
+        `⚠️ Found no latestVersion for a repository package on 'kylorhall/package'.`
       );
 
       expect(setOutputSpy).toHaveBeenCalledTimes(0);
     }
   );
 
-  test.each(["package", "directory"])(
+  test.each(["repository", "directory"])(
     "failing scenario: missing required input %p",
     (key) => {
       overrideInputs({
-        package: "required",
+        repository: "required",
         directory: "required",
         [key]: undefined,
       });
