@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: "Enforce Version"
-        id: enforce
+      - name: "Compare Version"
+        id: compare
         uses: kylorhall/compare-package-json-version-with-latest@v1.0.0
         with:
           repository: ${{ github.repository }}
@@ -24,8 +24,11 @@ jobs:
       - name: Debug
         if: always()
         run: |
-          echo target_version: ${{ steps.enforce.outputs.target_version }}
-          echo resolved_version: ${{ steps.enforce.outputs.resolved_version }}
+          echo current_version: ${{ steps.compare.outputs.current_version }}
+          echo latest_version: ${{ steps.compare.outputs.latest_version }}
+          echo matches?: ${{ steps.compare.outputs.matches }}
+          echo newer?: ${{ steps.compare.outputs.newer }}
+          echo diff: ${{ steps.compare.outputs.diff }}
 ```
 
 # Inputs
