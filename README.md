@@ -5,7 +5,7 @@ This Github Action allows us to compare your local `package.json` version with t
 ## Example Workflow
 
 ```yaml
-name: Compare Package and Fail
+name: Compare Packages
 
 on: push
 
@@ -22,13 +22,18 @@ jobs:
           repository: ${{ github.repository }}
 
       - name: Debug
-        if: always()
         run: |
           echo current_version: ${{ steps.compare.outputs.current_version }}
           echo latest_version: ${{ steps.compare.outputs.latest_version }}
           echo matches?: ${{ steps.compare.outputs.matches }}
           echo newer?: ${{ steps.compare.outputs.newer }}
           echo diff: ${{ steps.compare.outputs.diff }}
+          
+      - name: Fail if not newer
+        if: steps.compare.outputs.newer != 'true'
+        run: |
+          echo Version was not newer: ${{ steps.compare.outputs.current_version }} vs. ${{ steps.compare.outputs.latest_version }}
+          exit 1
 ```
 
 # Inputs
