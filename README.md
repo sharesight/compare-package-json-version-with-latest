@@ -10,7 +10,7 @@ name: Compare Packages
 on: push
 
 jobs:
-  typescript:
+  compare:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
