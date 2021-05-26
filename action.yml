@@ -1,16 +1,16 @@
 name: "compare-package-json-version-with-latest"
-description: "Allows us to compare your local `package.json` version with the current registry latest version."
+description: "Allows us to compare your local `package.json` version with a Github Package Registry's latest version."
 
 runs:
   using: "node12"
   main: "dist/index.js"
 
 inputs:
-  package:
-    description: "The name of the package to check against."
-    required: true
+  repository:
+    description: "The repository to get the latest package from.  Defaults to `env.GITHUB_REPOSITORY`."
+    required: false
   directory:
-    description: "Directory where your `package.json` can be found.  Defaults to to `env.GITHUB_WORKSPACE`."
+    description: "Directory where your `package.json` can be found.  Defaults to `env.GITHUB_WORKSPACE`."
     required: false
 
 outputs:

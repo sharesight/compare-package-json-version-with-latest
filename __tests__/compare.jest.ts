@@ -7,7 +7,7 @@ import * as VersionImport from "../src/version";
 let setOutputSpy;
 
 const config = {
-  package: "required",
+  repository: "required",
   directory: path.resolve(__dirname, "./workspace"),
 };
 

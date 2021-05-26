@@ -1,6 +1,6 @@
 # compare-package-json-version-with-latest
 
-This Github Action allows us to compare your local `package.json` version with the current registry latest version.
+This Github Action allows us to compare your local `package.json` version with a repository's Package Registry's latest version.
 
 ## Example Workflow
 
@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: kylorhall/compare-package-json-version-with-latest@v1.0.1
+        uses: kylorhall/compare-package-json-version-with-latest@v1.1.0
         with:
           repository: ${{ github.repository }}
 
@@ -38,10 +38,10 @@ jobs:
 
 # Inputs
 
-| Name      | Description                                       | Example                     | Default Value                  |
-| --------- | ------------------------------------------------- | --------------------------- | ------------------------------ |
-| package   | The name of the package to check against.         | @kylorhall/package          | **[required]**                 |
-| directory | Directory where your `package.json` can be found. | `'../packages/static-site'` | `default=env.GITHUB_WORKSPACE` |
+| Name       | Description                                                       | Example                     | Default Value           |
+| ---------- | ----------------------------------------------------------------- | --------------------------- | ----------------------- |
+| repository | The name of the repository to check for a latest package against. | `'@kylorhall/package'`      | `env.GITHUB_REPOSITORY` |
+| directory  | Directory where your `package.json` can be found.                 | `'../packages/static-site'` | `env.GITHUB_WORKSPACE`  |
 
 ---
 

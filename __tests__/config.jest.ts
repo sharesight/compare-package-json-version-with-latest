@@ -4,18 +4,20 @@ import { getConfig } from "../src/config";
 import type { Config } from "../src/config";
 
 const originalGitHubWorkspace = process.env["GITHUB_WORKSPACE"];
+const originalGitHubRepository = process.env["GITHUB_REPOSITORY"];
+
+process.env["GITHUB_REPOSITORY"] = "some/repo";
 
 export const baseInputs: Config = {
-  package: "semver",
+  repository: "kylorhall/package",
   directory: "../",
 };
 
-let getInputSpy;
 export const mockedGetInput = (name: string, inputs = baseInputs) =>
   inputs[name];
 export const overrideInputs = (inputs) => {
   jest.spyOn(core, "getInput").mockClear();
-  getInputSpy = jest.spyOn(core, "getInput").mockImplementation((inputName) => {
+  jest.spyOn(core, "getInput").mockImplementation((inputName) => {
     return mockedGetInput(inputName, { ...baseInputs, ...inputs });
   });
 };
@@ -23,16 +25,19 @@ export const overrideInputs = (inputs) => {
 describe("config", () => {
   beforeEach(() => {
     delete process.env["GITHUB_WORKSPACE"];
+    delete process.env["GITHUB_REPOSITORY"];
     jest.resetAllMocks();
 
-    getInputSpy = jest
+    jest
       .spyOn(core, "getInput")
       .mockImplementation((name) => mockedGetInput(name));
   });
 
   afterAll(() => {
     delete process.env["GITHUB_WORKSPACE"];
+    delete process.env["GITHUB_REPOSITORY"];
     process.env["GITHUB_WORKSPACE"] = originalGitHubWorkspace;
+    process.env["GITHUB_REPOSITORY"] = originalGitHubRepository;
 
     jest.restoreAllMocks();
   });
@@ -45,17 +50,18 @@ describe("config", () => {
 
     test("all available default values", () => {
       process.env.GITHUB_WORKSPACE = "./mocked_directory";
-      overrideInputs({ directory: undefined });
+      process.env.GITHUB_REPOSITORY = "mocked/repo";
+      overrideInputs({ directory: undefined, repository: undefined });
 
       expect(() => getConfig()).not.toThrow();
       expect(getConfig()).toEqual({
-        package: baseInputs.package,
+        repository: process.env.GITHUB_REPOSITORY,
         directory: process.env.GITHUB_WORKSPACE,
       });
     });
   });
 
-  test.each(["package", "directory"])(
+  test.each(["repository", "directory"])(
     "throws an error when %p is not included",
     (name) => {
       overrideInputs({ [name]: undefined });
