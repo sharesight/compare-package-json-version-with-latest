@@ -39,13 +39,13 @@ jobs:
 
 # Outputs
 
-| Name            | Description                                              | Type or Example Value                   |
-| --------------- | -------------------------------------------------------- | --------------------------------------- | -------- | ---------- | ------- | ---------- | ------- | ---------- | ------------- |
-| matches         | If the versions match<br>`1.2.3 === 1.3.0 = false`       | `'true'                                 | 'false'` |
-| newer           | If the latest version is newer<br>`1.2.3 < 1.3.0 = true` | `'true'                                 | 'false'` |
-| diff            | The diff between versions<br>`1.2.3 < 1.3.0 = 'patch'`   | `null                                   | 'major'  | 'premajor' | 'minor' | 'preminor' | 'patch' | 'prepatch' | 'prerelease'` |
-| current_version | The current package.json version                         | `'1.2.3'`, `'1.2.3-prerelease.1'`, etc… |
-| latest_version  | The latest package registry version                      | `'1.2.3'`, `'1.2.3-prerelease.1'`, etc… |
+| Name            | Description                                              | Example Values                                                                       |
+| --------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| matches         | If the versions match<br>`1.2.3 === 1.3.0 = false`       | `'true', 'false'`                                                                    |
+| newer           | If the latest version is newer<br>`1.2.3 < 1.3.0 = true` | `'true', 'false'`                                                                    |
+| diff            | The diff between versions<br>`1.2.3 < 1.3.0 = 'patch'`   | `null , 'major', 'premajor', 'minor', 'preminor', 'patch', 'prepatch', 'prerelease'` |
+| current_version | The current package.json version                         | `'1.2.3'`, `'1.2.3-prerelease.1'`, etc…                                              |
+| latest_version  | The latest package registry version                      | `'1.2.3'`, `'1.2.3-prerelease.1'`, etc…                                              |
 
 ---
 
