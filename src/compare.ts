@@ -1,12 +1,12 @@
-import { setOutput } from "@actions/core";
+import { setOutput } from '@actions/core';
 
-import semver from "semver";
-import type { SemVer, ReleaseType } from "semver";
+import semver from 'semver';
+import type { SemVer, ReleaseType } from 'semver';
 
-import { getConfig } from "./config";
-import type { Config } from "./config";
+import { getConfig } from './config';
+import type { Config } from './config';
 
-import { getPackageJsonVersion, getLatestRemoteVersion } from "./version";
+import { getPackageJsonVersion, getLatestRemoteVersion } from './version';
 
 export async function compareVersions(
   config: Config = getConfig()
@@ -28,18 +28,18 @@ export async function compareVersions(
     currentVersion.version,
     latestVersion.version
   );
-  setOutput("matches", matches);
+  setOutput('matches', matches);
 
   const newer: boolean = semver.gt(
     currentVersion.version,
     latestVersion.version
   );
-  setOutput("newer", newer);
+  setOutput('newer', newer);
 
   // Eg. 'major' | 'premajor' | 'minor' | 'preminor' | 'patch' | 'prepatch' | 'prerelease';
   const diff: ReleaseType | null = semver.diff(
     currentVersion.version,
     latestVersion.version
   );
-  setOutput("diff", diff);
+  setOutput('diff', diff);
 }

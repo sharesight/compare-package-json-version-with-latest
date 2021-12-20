@@ -1,7 +1,7 @@
-import { setFailed } from "@actions/core";
+import { setFailed } from '@actions/core';
 
-import { setLatestRemoteVersion, setPackageJsonVersion } from "./version";
-import { compareVersions } from "./compare";
+import { setLatestRemoteVersion, setPackageJsonVersion } from './version';
+import { compareVersions } from './compare';
 
 async function run(): Promise<void> {
   try {
