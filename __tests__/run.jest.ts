@@ -1,4 +1,3 @@
-import { mocked } from 'ts-jest/utils';
 import fs from 'fs';
 import path from 'path';
 import * as core from '@actions/core';
@@ -10,10 +9,12 @@ const LATEST_VERSION = '1.2.3';
 const CURRENT_VERSION = '1.2.3-workspace.42';
 
 jest.mock('fs');
-const readFileSyncMocked = mocked(fs.readFileSync);
+const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
+  typeof fs.readFileSync
+>;
 
 jest.mock('@octokit/graphql');
-const graphqlMocked = mocked(graphql);
+const graphqlMocked = graphql as jest.MockedFunction<typeof graphql>;
 
 export const mockLatestVersionResponse = version => {
   graphqlMocked.mockImplementation(async () => ({

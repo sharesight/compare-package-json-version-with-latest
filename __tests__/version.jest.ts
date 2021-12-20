@@ -1,4 +1,3 @@
-import { mocked } from 'ts-jest/utils';
 import path from 'path';
 import fs from 'fs';
 import * as core from '@actions/core';
@@ -12,10 +11,13 @@ import {
 } from '../src/version';
 
 jest.mock('fs');
-const readFileSyncMocked = mocked(fs.readFileSync);
+const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
+  typeof fs.readFileSync
+>;
 
 jest.mock('@octokit/graphql');
-const graphqlMocked = mocked(graphql);
+const graphqlMocked = graphql as jest.MockedFunction<typeof graphql>;
+
 interface HttpError extends Error {
   status?: number;
 }
