@@ -1,13 +1,13 @@
-import { graphql } from "@octokit/graphql";
-import type { GraphQlQueryResponseData } from "@octokit/graphql";
+import { graphql } from '@octokit/graphql';
+import type { GraphQlQueryResponseData } from '@octokit/graphql';
 
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-import { setOutput } from "@actions/core";
+import { setOutput } from '@actions/core';
 
-import { getConfig } from "./config";
-import type { Config } from "./config";
+import { getConfig } from './config';
+import type { Config } from './config';
 
 interface PackageJson {
   version: string;
@@ -15,10 +15,10 @@ interface PackageJson {
 
 export function getPackageJsonVersion(config: Config = getConfig()): string {
   const packageJsonBuffer: Buffer = fs.readFileSync(
-    path.join(config.directory, "package.json")
+    path.join(config.directory, 'package.json')
   );
   const packageJson: PackageJson = JSON.parse(
-    packageJsonBuffer.toString("utf8")
+    packageJsonBuffer.toString('utf8')
   );
 
   const version = packageJson.version;
@@ -32,13 +32,13 @@ export function getPackageJsonVersion(config: Config = getConfig()): string {
 
 export function setPackageJsonVersion(config: Config = getConfig()): void {
   const version: string = getPackageJsonVersion(config);
-  setOutput("current_version", version);
+  setOutput('current_version', version);
 }
 
 async function fetchLatestVersion(
   config: Config = getConfig()
 ): Promise<GraphQlQueryResponseData> {
-  const [owner, repo] = config.repository.split("/");
+  const [owner, repo] = config.repository.split('/');
 
   let authorization;
   if (process.env.GITHUB_TOKEN) {
@@ -73,7 +73,7 @@ async function fetchLatestVersion(
     if (err.status === 401) {
       let message = `⚠️ ${err.status}: Authentication failed!`;
       if (!authorization) {
-        message += " You should provide a `GITHUB_TOKEN` env.";
+        message += ' You should provide a `GITHUB_TOKEN` env.';
       }
 
       throw new Error(
@@ -111,5 +111,5 @@ export async function setLatestRemoteVersion(
   config: Config = getConfig()
 ): Promise<void> {
   const version: string = await getLatestRemoteVersion(config);
-  setOutput("latest_version", version);
+  setOutput('latest_version', version);
 }
