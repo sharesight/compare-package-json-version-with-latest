@@ -16,6 +16,11 @@ const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
 jest.mock('@octokit/graphql');
 const graphqlMocked = graphql as jest.MockedFunction<typeof graphql>;
 
+jest.mock('@actions/core');
+const getInputMocked = core.getInput as jest.MockedFunction<
+  typeof core.getInput
+>;
+
 export const mockLatestVersionResponse = version => {
   graphqlMocked.mockImplementation(async () => ({
     repository: {
@@ -42,12 +47,10 @@ let setFailedSpy;
 let setOutputSpy;
 setOutputSpy = jest.spyOn(core, 'setOutput').mockImplementation();
 
-export const mockedGetInput = (name: string, inputs = baseInputs) =>
-  inputs[name];
-export const overrideInputs = inputs => {
-  jest.spyOn(core, 'getInput').mockClear();
-  jest.spyOn(core, 'getInput').mockImplementation(inputName => {
-    return mockedGetInput(inputName, { ...baseInputs, ...inputs });
+export const overrideInputs = (inputs: Record<string, any> = {}) => {
+  const mockedInputs = { ...baseInputs, ...inputs };
+  getInputMocked.mockImplementation(inputName => {
+    return mockedInputs[inputName];
   });
 };
 
@@ -62,9 +65,7 @@ describe('run', () => {
 
     mockLatestVersionResponse(LATEST_VERSION);
 
-    jest
-      .spyOn(core, 'getInput')
-      .mockImplementation(name => mockedGetInput(name));
+    overrideInputs();
 
     setFailedSpy = jest.spyOn(core, 'setFailed').mockImplementation();
     setOutputSpy = jest.spyOn(core, 'setOutput').mockImplementation();

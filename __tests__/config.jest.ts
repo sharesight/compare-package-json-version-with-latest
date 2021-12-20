@@ -3,6 +3,11 @@ import * as core from '@actions/core';
 import { getConfig } from '../src/config';
 import type { Config } from '../src/config';
 
+jest.mock('@actions/core');
+const getInputMocked = core.getInput as jest.MockedFunction<
+  typeof core.getInput
+>;
+
 const originalGitHubWorkspace = process.env['GITHUB_WORKSPACE'];
 const originalGitHubRepository = process.env['GITHUB_REPOSITORY'];
 
@@ -13,12 +18,10 @@ export const baseInputs: Config = {
   directory: '../',
 };
 
-export const mockedGetInput = (name: string, inputs = baseInputs) =>
-  inputs[name];
-export const overrideInputs = inputs => {
-  jest.spyOn(core, 'getInput').mockClear();
-  jest.spyOn(core, 'getInput').mockImplementation(inputName => {
-    return mockedGetInput(inputName, { ...baseInputs, ...inputs });
+export const overrideInputs = (inputs: Record<string, any> = {}) => {
+  const mockedInputs = { ...baseInputs, ...inputs };
+  getInputMocked.mockImplementation(inputName => {
+    return mockedInputs[inputName];
   });
 };
 
@@ -28,9 +31,7 @@ describe('config', () => {
     delete process.env['GITHUB_REPOSITORY'];
     jest.resetAllMocks();
 
-    jest
-      .spyOn(core, 'getInput')
-      .mockImplementation(name => mockedGetInput(name));
+    overrideInputs();
   });
 
   afterAll(() => {
