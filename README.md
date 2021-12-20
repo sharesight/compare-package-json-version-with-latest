@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: kylorhall/compare-package-json-version-with-latest@v1.1.0
+        uses: kylorhall/compare-package-json-version-with-latest@v1.1.1
         with:
           repository: ${{ github.repository }}
 
