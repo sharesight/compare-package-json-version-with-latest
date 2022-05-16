@@ -8,7 +8,10 @@ import type { Config } from '../src/config';
 const LATEST_VERSION = '1.2.3';
 const CURRENT_VERSION = '1.2.3-workspace.42';
 
-jest.mock('fs');
+jest.mock('fs', () => ({
+  promises: { access: jest.fn() },
+  readFileSync: jest.fn(),
+}));
 const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
   typeof fs.readFileSync
 >;
