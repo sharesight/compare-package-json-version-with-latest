@@ -10,7 +10,10 @@ import {
   setPackageJsonVersion,
 } from '../src/version';
 
-jest.mock('fs');
+jest.mock('fs', () => ({
+  promises: { access: jest.fn() },
+  readFileSync: jest.fn(),
+}));
 const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
   typeof fs.readFileSync
 >;
