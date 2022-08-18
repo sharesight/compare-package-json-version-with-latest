@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: kylorhall/compare-package-json-version-with-latest@v1.1.1
+        uses: sharesight/compare-package-json-version-with-latest@v1.1.1
         with:
           repository: ${{ github.repository }}
 
@@ -40,7 +40,7 @@ jobs:
 
 | Name       | Description                                                       | Example                     | Default Value           |
 | ---------- | ----------------------------------------------------------------- | --------------------------- | ----------------------- |
-| repository | The name of the repository to check for a latest package against. | `'@kylorhall/package'`      | `env.GITHUB_REPOSITORY` |
+| repository | The name of the repository to check for a latest package against. | `'@sharesight/package'`      | `env.GITHUB_REPOSITORY` |
 | directory  | Directory where your `package.json` can be found.                 | `'../packages/static-site'` | `env.GITHUB_WORKSPACE`  |
 
 ---
@@ -79,7 +79,7 @@ yarn jest:tdd
 
 #### Create the Release
 
-Manually build a New Release: [here](https://github.com/kylorhall/compare-package-json-version-with-latest/releases/new)
+Manually build a New Release: [here](https://github.com/sharesight/compare-package-json-version-with-latest/releases/new)
 
 1. Enter your tag based on the semver.
     - Your tag should be prepended with a `v`, eg. `v1.2.3`.

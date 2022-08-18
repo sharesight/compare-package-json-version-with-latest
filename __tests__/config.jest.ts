@@ -14,7 +14,7 @@ const originalGitHubRepository = process.env['GITHUB_REPOSITORY'];
 process.env['GITHUB_REPOSITORY'] = 'some/repo';
 
 export const baseInputs: Config = {
-  repository: 'kylorhall/package',
+  repository: 'sharesight/package',
   directory: '../',
 };
 

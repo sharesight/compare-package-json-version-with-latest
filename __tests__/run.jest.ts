@@ -43,7 +43,7 @@ export const mockLatestVersionResponse = version => {
 
 export const baseInputs: Config = {
   directory: path.resolve(__dirname, './workspace'),
-  repository: 'kylorhall/package',
+  repository: 'sharesight/package',
 };
 
 let setFailedSpy;
@@ -189,7 +189,7 @@ describe('run', () => {
 
       expect(setFailedSpy).toHaveBeenCalledTimes(1);
       expect(setFailedSpy).toHaveBeenCalledWith(
-        `⚠️ Found no latestVersion for a repository package on 'kylorhall/package'.`
+        `⚠️ Found no latestVersion for a repository package on 'sharesight/package'.`
       );
 
       expect(setOutputSpy).toHaveBeenCalledTimes(0);
