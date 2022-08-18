@@ -62,7 +62,7 @@ describe('version', () => {
 
   describe('get + set LatestRemoteVersion', () => {
     test.each([
-      { version: '1.1.1', repository: 'kylorhall/repo' },
+      { version: '1.1.1', repository: 'sharesight/repo' },
       { version: '1.2.3', repository: 'org/repo' },
     ])(
       "pulls a version from Github's GraphQL (%p)",
@@ -108,7 +108,7 @@ describe('version', () => {
 
       await getLatestRemoteVersion({
         ...baseConfig,
-        repository: 'kylorhall/repo',
+        repository: 'sharesight/repo',
       });
 
       expect(graphqlMocked.mock.calls[0][1].headers.authorization).toEqual(
@@ -119,7 +119,7 @@ describe('version', () => {
     test("throws an error when a latestVersion isn't found", async () => {
       mockLatestVersionResponse('');
 
-      const repository = '@kylorhall/repo';
+      const repository = '@sharesight/repo';
       const config = { ...baseConfig, repository };
       const error = `⚠️ Found no latestVersion for a repository package on '${repository}'.`;
 
@@ -160,7 +160,7 @@ describe('version', () => {
         },
       }));
 
-      const repository = '@kylorhall/repo';
+      const repository = '@sharesight/repo';
       const config = { ...baseConfig, repository };
       const error = `🚧 Found 2 packages on '${repository}', expected only 1.  Monorepo/multiple packages is not supported yet.`;
 
@@ -185,7 +185,7 @@ describe('version', () => {
         throw err;
       });
 
-      const config = { ...baseConfig, repository: 'kylorhall/repo' };
+      const config = { ...baseConfig, repository: 'sharesight/repo' };
       const error =
         '⚠️ 401: Authentication failed! Received error from Github GraphQL: "Some error message!"';
 
@@ -207,7 +207,7 @@ describe('version', () => {
         throw err;
       });
 
-      const config = { ...baseConfig, repository: 'kylorhall/repo' };
+      const config = { ...baseConfig, repository: 'sharesight/repo' };
       const error =
         '⚠️ 401: Authentication failed! You should provide a `GITHUB_TOKEN` env. Received error from Github GraphQL: "Some error message!"';
 
@@ -229,7 +229,7 @@ describe('version', () => {
         throw err;
       });
 
-      const config = { ...baseConfig, repository: 'kylorhall/repo' };
+      const config = { ...baseConfig, repository: 'sharesight/repo' };
       const error = 'Some error message!';
 
       await expect(async () => {
@@ -248,7 +248,7 @@ describe('version', () => {
       async version => {
         mockLatestVersionResponse(version);
 
-        const config = { ...baseConfig, repository: '@kylorhall/repo' };
+        const config = { ...baseConfig, repository: '@sharesight/repo' };
 
         // GET:
         const latestVersion = await getLatestRemoteVersion(config);
