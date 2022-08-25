@@ -2,8 +2,9 @@
   "compilerOptions": {
     "target": "es2015",
     "moduleResolution": "node",
+    "module": "commonjs",
     "esModuleInterop": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true
-  }
+    "noUnusedParameters": true,
+  },
 }
