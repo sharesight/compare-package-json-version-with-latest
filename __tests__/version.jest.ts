@@ -19,19 +19,6 @@ const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<typeof fs.read
 jest.mock('@octokit/core');
 const octokitMocked = Octokit as jest.MockedClass<typeof Octokit>;
 
-// const mockRequest = jest.fn();
-// jest.mock('@octokit/core', () => {
-//   return jest.fn().mockImplementation(() => {
-//     return { request: mockRequest };
-//   })
-// });
-
-// const octokitMocked = new Octokit() as jest.MockedFunction<Octokit>;
-
-// const octokit = jest.fn().mockImplementation(() => {
-//   return {request: mockRequest};
-// });
-
 interface HttpError extends Error {
   status?: number;
 }
@@ -41,8 +28,8 @@ const baseConfig = {
 };
 
 const mockLatestVersionResponse = version => {
-  // @ts-expect-error
-  octokitMocked.mockImplementation().mockImplementation(() => {
+  // @ts-expect-error -- Since it's a Mocked class it expects all the other properties that the instantiated Octokit defines.
+  octokitMocked.mockImplementation(() => {
     return {
       request: jest.fn().mockImplementation(async () => {
         return { data: { tag_name: version } };
@@ -69,7 +56,7 @@ describe('version', () => {
     test.each([
       { version: '1.1.1', repository: 'sharesight/repo' },
       { version: '1.2.3', repository: 'org/repo' },
-    ])("pulls a version from Github's GraphQL (%p)", async ({ version, repository }) => {
+    ])("pulls a version from Github's Octokit.request (%p)", async ({ version, repository }) => {
       mockLatestVersionResponse(version);
       expect(octokitMocked).toHaveBeenCalledTimes(0);
       const latestRemoteVersion = await getLatestRemoteVersion({
@@ -83,7 +70,7 @@ describe('version', () => {
       expect(latestRemoteVersion).toEqual(version);
     });
 
-    test('passes env.GITHUB_TOKEN to graphql', async () => {
+    test('passes env.GITHUB_TOKEN to Octokit', async () => {
       process.env.GITHUB_TOKEN = '123abc';
       mockLatestVersionResponse('1.2.3');
 
@@ -141,7 +128,7 @@ describe('version', () => {
   test('throws an error when you get a 401 without a `GITHUB_TOKEN` set', async () => {
     const config = { ...baseConfig, repository: 'sharesight/repo' };
     const error =
-      '⚠️ 401: Authentication failed! You should provide a `GITHUB_TOKEN` env. Received error from Github GraphQL: "Some error message!"';
+      '⚠️ 401: Authentication failed! You should provide a `GITHUB_TOKEN` env. Received error from Github Octokit: "Some error message!"';
 
     octokitMocked.mockImplementation(() => {
       const err: HttpError = new Error(error);

@@ -63,7 +63,7 @@ async function fetchLatestVersion(
       }
 
       throw new Error(
-        `${message} Received error from Github GraphQL: "${err.message}"`
+        `${message} Received error from Github Octokit request: "${err.message}"`
       );
     }
 
