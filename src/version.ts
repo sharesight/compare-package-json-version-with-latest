@@ -76,7 +76,7 @@ export async function getLatestRemoteVersion(
 ): Promise<string> {
   const { data } = await fetchLatestVersion(config);
 
-  const version = data.tag_name.substring(1);
+  const version = data.tag_name;
 
   if (!version) {
     throw new Error(
