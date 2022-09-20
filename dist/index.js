@@ -10579,7 +10579,7 @@ function fetchLatestVersion(config = getConfig()) {
                 if (!authorization) {
                     message += ' You should provide a `GITHUB_TOKEN` env.';
                 }
-                throw new Error(`${message} Received error from Github GraphQL: "${err.message}"`);
+                throw new Error(`${message} Received error from Github Octokit request: "${err.message}"`);
             }
             throw err;
         }
@@ -10588,7 +10588,7 @@ function fetchLatestVersion(config = getConfig()) {
 function getLatestRemoteVersion(config = getConfig()) {
     return __awaiter(this, void 0, void 0, function* () {
         const { data } = yield fetchLatestVersion(config);
-        const version = data.tag_name.substring(1);
+        const version = data.tag_name;
         if (!version) {
             throw new Error(`⚠️ Found no latest version for a repository package on '${config.repository}'.`);
         }
@@ -10598,7 +10598,6 @@ function getLatestRemoteVersion(config = getConfig()) {
 function setLatestRemoteVersion(config = getConfig()) {
     return __awaiter(this, void 0, void 0, function* () {
         const version = yield getLatestRemoteVersion(config);
-        console.log("@@@version", version);
         (0,core.setOutput)('latest_version', version);
     });
 }
