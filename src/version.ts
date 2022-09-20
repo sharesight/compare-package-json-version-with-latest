@@ -91,6 +91,5 @@ export async function setLatestRemoteVersion(
   config: Config = getConfig()
 ): Promise<void> {
   const version: string = await getLatestRemoteVersion(config);
-  console.log("@@@version", version);
   setOutput('latest_version', version);
 }

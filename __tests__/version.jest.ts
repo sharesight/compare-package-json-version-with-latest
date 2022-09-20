@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import * as core from '@actions/core';
-import { graphql } from '@octokit/graphql';
+import { Octokit } from '@octokit/core';
 
 import {
   getLatestRemoteVersion,
@@ -14,12 +14,23 @@ jest.mock('fs', () => ({
   promises: { access: jest.fn() },
   readFileSync: jest.fn(),
 }));
-const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
-  typeof fs.readFileSync
->;
+const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<typeof fs.readFileSync>;
 
-jest.mock('@octokit/graphql');
-const graphqlMocked = graphql as jest.MockedFunction<typeof graphql>;
+jest.mock('@octokit/core');
+const octokitMocked = Octokit as jest.MockedClass<typeof Octokit>;
+
+// const mockRequest = jest.fn();
+// jest.mock('@octokit/core', () => {
+//   return jest.fn().mockImplementation(() => {
+//     return { request: mockRequest };
+//   })
+// });
+
+// const octokitMocked = new Octokit() as jest.MockedFunction<Octokit>;
+
+// const octokit = jest.fn().mockImplementation(() => {
+//   return {request: mockRequest};
+// });
 
 interface HttpError extends Error {
   status?: number;
@@ -29,21 +40,15 @@ const baseConfig = {
   directory: path.resolve(__dirname, './workspace'),
 };
 
-export const mockLatestVersionResponse = version => {
-  graphqlMocked.mockImplementation(async () => ({
-    repository: {
-      packages: {
-        nodes: [
-          {
-            latestVersion: {
-              id: '…',
-              version,
-            },
-          },
-        ],
-      },
-    },
-  }));
+const mockLatestVersionResponse = version => {
+  // @ts-expect-error
+  octokitMocked.mockImplementation().mockImplementation(() => {
+    return {
+      request: jest.fn().mockImplementation(async () => {
+        return { data: { tag_name: `v${version}` } };
+      }),
+    };
+  });
 };
 
 let setOutputSpy;
@@ -64,43 +69,19 @@ describe('version', () => {
     test.each([
       { version: '1.1.1', repository: 'sharesight/repo' },
       { version: '1.2.3', repository: 'org/repo' },
-    ])(
-      "pulls a version from Github's GraphQL (%p)",
-      async ({ version, repository }) => {
-        mockLatestVersionResponse(version);
+    ])("pulls a version from Github's GraphQL (%p)", async ({ version, repository }) => {
+      mockLatestVersionResponse(version);
+      expect(octokitMocked).toHaveBeenCalledTimes(0);
+      const latestRemoteVersion = await getLatestRemoteVersion({
+        ...baseConfig,
+        repository,
+      });
 
-        expect(graphqlMocked).toHaveBeenCalledTimes(0);
-        const latestRemoteVersion = await getLatestRemoteVersion({
-          ...baseConfig,
-          repository,
-        });
+      expect(octokitMocked).toHaveBeenCalledTimes(1);
+      expect(octokitMocked).toHaveBeenCalledWith({ auth: undefined });
 
-        expect(graphqlMocked).toHaveBeenCalledTimes(1);
-        expect(graphqlMocked).toHaveBeenCalledWith(
-          `
-        query getLatestVersion($owner: String!, $repo: String!) {
-          repository(owner: $owner, name: $repo) {
-            packages(first: 2) {
-              nodes {
-                latestVersion {
-                  id
-                  version
-                }
-              }
-            }
-          }
-        }
-      `,
-          {
-            headers: { authorization: undefined },
-            owner: repository.split('/')[0],
-            repo: repository.split('/')[1],
-          }
-        );
-
-        expect(latestRemoteVersion).toEqual(version);
-      }
-    );
+      expect(latestRemoteVersion).toEqual(version);
+    });
 
     test('passes env.GITHUB_TOKEN to graphql', async () => {
       process.env.GITHUB_TOKEN = '123abc';
@@ -111,17 +92,15 @@ describe('version', () => {
         repository: 'sharesight/repo',
       });
 
-      expect(graphqlMocked.mock.calls[0][1].headers.authorization).toEqual(
-        `token ${process.env.GITHUB_TOKEN}`
-      );
+      expect(octokitMocked.mock.calls[0][0].auth).toEqual(`token ${process.env.GITHUB_TOKEN}`);
     });
 
-    test("throws an error when a latestVersion isn't found", async () => {
+    test("throws an error when a latest version isn't found", async () => {
       mockLatestVersionResponse('');
 
       const repository = '@sharesight/repo';
       const config = { ...baseConfig, repository };
-      const error = `⚠️ Found no latestVersion for a repository package on '${repository}'.`;
+      const error = `⚠️ Found no latest version for a repository package on '${repository}'.`;
 
       // GET:
       await expect(async () => {
@@ -136,129 +115,84 @@ describe('version', () => {
       expect(setOutputSpy).not.toHaveBeenCalled();
     });
 
-    test('throws an error when >1 package is found', async () => {
-      graphqlMocked.mockImplementation(async () => ({
-        repository: {
-          packages: {
-            nodes: [
-              {
-                // eg. multi-repo: package/core
-                latestVersion: {
-                  id: '1',
-                  version: '1.2.3',
-                },
-              },
-              {
-                // eg. multi-repo: package/helpers
-                latestVersion: {
-                  id: '1',
-                  version: '1.2.3',
-                },
-              },
-            ],
-          },
-        },
-      }));
+  test('throws an error when you get a 401 with a `GITHUB_TOKEN` set', async () => {
+    process.env.GITHUB_TOKEN = 'invalid-token';
+    const config = { ...baseConfig, repository: 'sharesight/repo' };
+    const error =
+      '⚠️ 401: Authentication failed! Received error from Github Octokit.request: "Some error message!"';
 
-      const repository = '@sharesight/repo';
-      const config = { ...baseConfig, repository };
-      const error = `🚧 Found 2 packages on '${repository}', expected only 1.  Monorepo/multiple packages is not supported yet.`;
-
-      // GET:
-      await expect(async () => {
-        await getLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      // SET:
-      await expect(async () => {
-        await setLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      expect(setOutputSpy).not.toHaveBeenCalled();
+    octokitMocked.mockImplementation(() => {
+      const err: HttpError = new Error(error);
+      err.status = 401;
+      throw err;
     });
 
-    test('throws an error when you get a 401 with a `GITHUB_TOKEN` set', async () => {
-      process.env.GITHUB_TOKEN = 'invalid-token';
-      graphqlMocked.mockImplementation(() => {
-        const err: HttpError = new Error('Some error message!');
-        err.status = 401;
-        throw err;
-      });
+    await expect(async () => {
+      await getLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
 
-      const config = { ...baseConfig, repository: 'sharesight/repo' };
-      const error =
-        '⚠️ 401: Authentication failed! Received error from Github GraphQL: "Some error message!"';
+    await expect(async () => {
+      await setLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
 
-      await expect(async () => {
-        await getLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      await expect(async () => {
-        await setLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      expect(setOutputSpy).not.toHaveBeenCalled();
-    });
-
-    test('throws an error when you get a 401 without a `GITHUB_TOKEN` set', async () => {
-      graphqlMocked.mockImplementation(() => {
-        const err: HttpError = new Error('Some error message!');
-        err.status = 401;
-        throw err;
-      });
-
-      const config = { ...baseConfig, repository: 'sharesight/repo' };
-      const error =
-        '⚠️ 401: Authentication failed! You should provide a `GITHUB_TOKEN` env. Received error from Github GraphQL: "Some error message!"';
-
-      await expect(async () => {
-        await getLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      await expect(async () => {
-        await setLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      expect(setOutputSpy).not.toHaveBeenCalled();
-    });
-
-    test('throws a passed-through error from graphql', async () => {
-      graphqlMocked.mockImplementation(() => {
-        const err: HttpError = new Error('Some error message!');
-        err.status = 500;
-        throw err;
-      });
-
-      const config = { ...baseConfig, repository: 'sharesight/repo' };
-      const error = 'Some error message!';
-
-      await expect(async () => {
-        await getLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      await expect(async () => {
-        await setLatestRemoteVersion(config);
-      }).rejects.toThrow(error);
-
-      expect(setOutputSpy).not.toHaveBeenCalled();
-    });
-
-    test.each(['1.2.3', '4.2.0'])(
-      'returns/sets the resolved version (%p)',
-      async version => {
-        mockLatestVersionResponse(version);
-
-        const config = { ...baseConfig, repository: '@sharesight/repo' };
-
-        // GET:
-        const latestVersion = await getLatestRemoteVersion(config);
-        expect(latestVersion).toEqual(version);
-
-        await setLatestRemoteVersion(config);
-        expect(setOutputSpy).toHaveBeenCalledWith('latest_version', version);
-      }
-    );
+    expect(setOutputSpy).not.toHaveBeenCalled();
   });
+
+  test('throws an error when you get a 401 without a `GITHUB_TOKEN` set', async () => {
+    const config = { ...baseConfig, repository: 'sharesight/repo' };
+    const error =
+      '⚠️ 401: Authentication failed! You should provide a `GITHUB_TOKEN` env. Received error from Github GraphQL: "Some error message!"';
+
+    octokitMocked.mockImplementation(() => {
+      const err: HttpError = new Error(error);
+      err.status = 401;
+      throw err;
+    });
+
+    await expect(async () => {
+      await getLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
+
+    await expect(async () => {
+      await setLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
+
+    expect(setOutputSpy).not.toHaveBeenCalled();
+  });
+
+  test('throws a passed-through error from Octokit.request', async () => {
+    const config = { ...baseConfig, repository: 'sharesight/repo' };
+    const error = 'Some error message!';
+
+    octokitMocked.mockImplementation(() => {
+      const err: HttpError = new Error('Some error message!');
+      err.status = 500;
+      throw err;
+    });
+
+    await expect(async () => {
+      await getLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
+
+    await expect(async () => {
+      await setLatestRemoteVersion(config);
+    }).rejects.toThrow(error);
+
+    expect(setOutputSpy).not.toHaveBeenCalled();
+  });
+
+  test.each(['1.2.3', '4.2.0'])('returns/sets the resolved version (%p)', async version => {
+    mockLatestVersionResponse(version);
+
+    const config = { ...baseConfig, repository: '@sharesight/repo' };
+
+    const latestVersion = await getLatestRemoteVersion(config);
+    expect(latestVersion).toEqual(version);
+
+    await setLatestRemoteVersion(config);
+    expect(setOutputSpy).toHaveBeenCalledWith('latest_version', version);
+  });
+});
 
   describe('get + set PackageJsonVersion', () => {
     test.each([undefined, false, ''])(
