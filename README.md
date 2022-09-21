@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: sharesight/compare-package-json-version-with-latest@v1.1.1
+        uses: sharesight/compare-package-json-version-with-latest@v1.2.0
         with:
           repository: ${{ github.repository }}
 
@@ -71,7 +71,7 @@ yarn jest:tdd
 
 #### Prepare Build
 
-1. Deicde on a semver, eg. `1.2.3`.
+1. Decide on a semver, eg. `1.2.3`.
 2. Bump this version in `package.json` file—just for the sake of it.
 3. Bump this version in `README.md` file.
 4. Run `yarn build` and commit that `dist/index.js` change.
