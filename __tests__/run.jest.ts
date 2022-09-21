@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import * as core from '@actions/core';
-import { graphql } from '@octokit/graphql';
+import { Octokit } from '@octokit/core';
 
 import type { Config } from '../src/config';
 
@@ -16,8 +16,8 @@ const readFileSyncMocked = fs.readFileSync as jest.MockedFunction<
   typeof fs.readFileSync
 >;
 
-jest.mock('@octokit/graphql');
-const graphqlMocked = graphql as jest.MockedFunction<typeof graphql>;
+jest.mock('@octokit/core');
+const octokitMocked = Octokit as jest.MockedClass<typeof Octokit>;
 
 jest.mock('@actions/core');
 const getInputMocked = core.getInput as jest.MockedFunction<
@@ -25,20 +25,14 @@ const getInputMocked = core.getInput as jest.MockedFunction<
 >;
 
 export const mockLatestVersionResponse = version => {
-  graphqlMocked.mockImplementation(async () => ({
-    repository: {
-      packages: {
-        nodes: [
-          {
-            latestVersion: {
-              id: '…',
-              version,
-            },
-          },
-        ],
-      },
-    },
-  }));
+  // @ts-expect-error -- Since it's a Mocked class it expects all the other properties that the instantiated Octokit defines.
+  octokitMocked.mockImplementation(() => {
+    return {
+      request: jest.fn().mockImplementation(async () => {
+        return { data: { tag_name: version } };
+      }),
+    };
+  });
 };
 
 export const baseInputs: Config = {
@@ -189,7 +183,7 @@ describe('run', () => {
 
       expect(setFailedSpy).toHaveBeenCalledTimes(1);
       expect(setFailedSpy).toHaveBeenCalledWith(
-        `⚠️ Found no latestVersion for a repository package on 'sharesight/package'.`
+        `⚠️ Found no latest version for a repository package on 'sharesight/package'.`
       );
 
       expect(setOutputSpy).toHaveBeenCalledTimes(0);

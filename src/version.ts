@@ -1,5 +1,4 @@
-import { graphql } from '@octokit/graphql';
-import type { GraphQlQueryResponseData } from '@octokit/graphql';
+import { Octokit } from '@octokit/core';
 
 import fs from 'fs';
 import path from 'path';
@@ -7,6 +6,7 @@ import path from 'path';
 import { setOutput } from '@actions/core';
 
 import { getConfig } from './config';
+
 import type { Config } from './config';
 
 interface PackageJson {
@@ -37,7 +37,7 @@ export function setPackageJsonVersion(config: Config = getConfig()): void {
 
 async function fetchLatestVersion(
   config: Config = getConfig()
-): Promise<GraphQlQueryResponseData> {
+) {
   const [owner, repo] = config.repository.split('/');
 
   let authorization;
@@ -45,30 +45,16 @@ async function fetchLatestVersion(
     authorization = `token ${process.env.GITHUB_TOKEN}`;
   }
 
+  const octokit = new Octokit({
+    auth: authorization
+  })
+
   try {
-    return await graphql(
-      `
-        query getLatestVersion($owner: String!, $repo: String!) {
-          repository(owner: $owner, name: $repo) {
-            packages(first: 2) {
-              nodes {
-                latestVersion {
-                  id
-                  version
-                }
-              }
-            }
-          }
-        }
-      `,
-      {
-        owner,
-        repo,
-        headers: {
-          authorization,
-        },
-      }
-    );
+    return await octokit.request('GET /repos/{owner}/{repo}/releases/latest', {
+      owner,
+      repo
+    })
+
   } catch (err) {
     if (err.status === 401) {
       let message = `⚠️ ${err.status}: Authentication failed!`;
@@ -77,7 +63,7 @@ async function fetchLatestVersion(
       }
 
       throw new Error(
-        `${message} Received error from Github GraphQL: "${err.message}"`
+        `${message} Received error from Github Octokit request: "${err.message}"`
       );
     }
 
@@ -88,19 +74,13 @@ async function fetchLatestVersion(
 export async function getLatestRemoteVersion(
   config: Config = getConfig()
 ): Promise<string> {
-  const response: GraphQlQueryResponseData = await fetchLatestVersion(config);
+  const { data } = await fetchLatestVersion(config);
 
-  if (response.repository.packages.nodes.length > 1) {
-    throw new Error(
-      `🚧 Found ${response.repository.packages.nodes.length} packages on '${config.repository}', expected only 1.  Monorepo/multiple packages is not supported yet.`
-    );
-  }
-
-  const version = response.repository.packages.nodes[0].latestVersion.version;
+  const version = data.tag_name;
 
   if (!version) {
     throw new Error(
-      `⚠️ Found no latestVersion for a repository package on '${config.repository}'.`
+      `⚠️ Found no latest version for a repository package on '${config.repository}'.`
     );
   }
 
