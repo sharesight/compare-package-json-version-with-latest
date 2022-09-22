@@ -1,6 +1,6 @@
 {
   "name": "compare-package-json-version-with-latest",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Allows us to compare your local `package.json` version with a Github Package Registry's latest version.",
   "main": "dist/index.js",
   "scripts": {
