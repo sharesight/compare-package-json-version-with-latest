@@ -17,7 +17,7 @@ jobs:
 
       - name: "Compare Version"
         id: compare
-        uses: sharesight/compare-package-json-version-with-latest@v1.2.0
+        uses: sharesight/compare-package-json-version-with-latest@v1.2.1
         with:
           repository: ${{ github.repository }}
 

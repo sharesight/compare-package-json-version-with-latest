@@ -10588,7 +10588,7 @@ function fetchLatestVersion(config = getConfig()) {
 function getLatestRemoteVersion(config = getConfig()) {
     return __awaiter(this, void 0, void 0, function* () {
         const { data } = yield fetchLatestVersion(config);
-        const version = data.tag_name;
+        const version = data.tag_name.replace(/^[^0-9]*/, ''); // Removes the v from the tag_name that comes back from the github request.
         if (!version) {
             throw new Error(`⚠️ Found no latest version for a repository package on '${config.repository}'.`);
         }
