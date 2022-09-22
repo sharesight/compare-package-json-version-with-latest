@@ -32,7 +32,7 @@ const mockLatestVersionResponse = version => {
   octokitMocked.mockImplementation(() => {
     return {
       request: jest.fn().mockImplementation(async () => {
-        return { data: { tag_name: version } };
+        return { data: { tag_name: `v${version}` } };
       }),
     };
   });
