@@ -76,7 +76,7 @@ export async function getLatestRemoteVersion(
 ): Promise<string> {
   const { data } = await fetchLatestVersion(config);
 
-  const version = data.tag_name;
+  const version = data.tag_name.replace(/^[^0-9]*/, ''); // Removes the v from the tag_name that comes back from the github request.
 
   if (!version) {
     throw new Error(

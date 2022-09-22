@@ -29,7 +29,7 @@ export const mockLatestVersionResponse = version => {
   octokitMocked.mockImplementation(() => {
     return {
       request: jest.fn().mockImplementation(async () => {
-        return { data: { tag_name: version } };
+        return { data: { tag_name: `v${version}` } };
       }),
     };
   });
@@ -168,10 +168,9 @@ describe('run', () => {
       );
     }
   );
-  test.each(['', undefined])(
-    'failing scenario: missing/invalid remote latest package version=%p',
-    async version => {
-      mockLatestVersionResponse(version);
+  test('failing scenario: missing remote latest package version=%p',
+    async () => {
+      mockLatestVersionResponse(''); // passes an empty string as a version value.
 
       // NOTE: This runs on load, this is how you do that…
       let promise;
