@@ -2,7 +2,7 @@ name: "compare-package-json-version-with-latest"
 description: "Allows us to compare your local `package.json` version with a Github Package Registry's latest version."
 
 runs:
-  using: "node12"
+  using: "node16"
   main: "dist/index.js"
 
 inputs:
